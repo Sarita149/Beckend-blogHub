@@ -8,7 +8,7 @@ const userRoute = require('./routers/useRoute');
 
 var app = express();
 
-app.use(cors());
+app.use(cors({origin: 'http://localhost:4200'}));
 app.use(bodyParser.json());
 
 // localhost:3000/api/addblog
