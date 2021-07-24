@@ -1,29 +1,19 @@
 const Blog = require('../models/postBlog');
 const category = require('../models/Category');
 
-const getBlogById = (req, res) => {
-    Blog.findById(req.params.id, (err, data) => {
-        if (err) {
-            return res.send({ success: false, message: "Unable to fetch data." });
-        } else {
-            return res.json({ success: false, data });
-        }
-    });
-};
+
 
 const allblogs = async(req, res) => {
-
     let count = await Blog.countDocuments();
     let blogsData = await Blog.find()
         .select('title timage category views shortDescription createdAt updatedAt')
-        .populate({ path: 'author', select: ['name', 'createdAt', 'updatedAt'] }).lean();
+        .populate({ path: 'author', select: ['username'] }).lean();
 
     if (!blogsData) {
         return res.json({ success: false, message: "Unable to fetch data." });
     }
 
     return res.json({ success: true, data: blogsData, count });
-
 };
 
 const postBlog = async(req, res) => {
@@ -40,6 +30,9 @@ const postBlog = async(req, res) => {
         timage: req.body.timage,
         content: req.body.description,
         category: cat._id,
+        views: req.body.views,
+        shortDescription: req.body.shortDescription,
+        publish: false
     });
 
     addBlog.save().then(
@@ -83,13 +76,30 @@ const deleteBlog = (req, res) => {
 
 }
 
+const getBlogById = async(req, res) => {
+    console.log("req params :: ", req.params, );
+
+    let blogData = await Blog.findById(req.params.id)
+        .select('title timage content category views shortDescription createdAt updatedAt')
+        .populate({ path: 'author', select: ['username', 'email'] })
+        .populate({ path: 'category', select: ['categoryName'] })
+        .lean();
+
+    if (blogData) {
+        return res.json({ success: true, blogData });
+    } else {
+        return res.json({ success: false, message: "Unable to fetch data." });
+    }
+}
+
 
 const AllHomedata = async(req, res) => {
-
     let count = await Blog.countDocuments();
     let blogsData = await Blog.find()
         .select('title timage category views shortDescription createdAt updatedAt')
-        .populate({ path: 'author', select: ['name', 'createdAt', 'updatedAt'] }).lean();
+        .populate({ path: 'author', select: ['username'] })
+        .populate({ path: 'category', select: ['categoryName'] })
+        .lean();
 
     if (!blogsData) {
         return res.json({ success: false, message: "Unable to fetch data." });

@@ -10,7 +10,7 @@ const { getBlogById, allblogs, postBlog, UpdateBlog, AllHomedata } = require('..
 router.post('/addblog', jwtAuth, postBlog);
 router.get("/allblogs", allblogs);
 
-router.get('/allblogs/:id', getBlogById)
+router.get('/allblogs/:id', getBlogById);
 router.post('/allblogs/:id', UpdateBlog);
 
 
