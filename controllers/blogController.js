@@ -4,35 +4,29 @@ const category = require('../models/Category');
 const getBlogById = (req, res) => {
     Blog.findById(req.params.id, (err, data) => {
         if (err) {
-            return res.send(err);
+            return res.send({ success: false, message: "Unable to fetch data." });
         } else {
-            return res.json(data);
+            return res.json({ success: false, data });
         }
     });
 };
 
-const allblogs = (req, res) => {
-    Blog.find((err, data) => {
-        if (err) {
-            return res.send(err);
-        } else {
-            const returnData = data.map((item) => {
-                let SingleBlog = item.toJSON();
-                // console.log("this is singleBlog item : "+SingleBlog);
-                SingleBlog.Link = {};
-                // console.log(SingleBlog);
-                SingleBlog.Link.href = `http://${req.headers.host}/api/allblogs/${item._id}`;
-                // console.log(SingleBlog);
-                return SingleBlog;
-            });
-            // console.log(returnData);
-            return res.json(returnData);
-        }
-    });
+const allblogs = async(req, res) => {
+
+    let count = await Blog.countDocuments();
+    let blogsData = await Blog.find()
+        .select('title timage category views shortDescription createdAt updatedAt')
+        .populate({ path: 'author', select: ['name', 'createdAt', 'updatedAt'] }).lean();
+
+    if (!blogsData) {
+        return res.json({ success: false, message: "Unable to fetch data." });
+    }
+
+    return res.json({ success: true, data: blogsData, count });
+
 };
 
-const postBlog = async (req, res) => {
-
+const postBlog = async(req, res) => {
     let cat = await category.findOne({ categoryName: req.body.category }).lean();
 
     if (!cat) {
@@ -47,24 +41,20 @@ const postBlog = async (req, res) => {
         content: req.body.description,
         category: cat._id,
     });
-    // console.log(addBlog);
 
     addBlog.save().then(
         (doc) => {
             return res.json({
-                message: 'Post Succesfully',
-                result: doc
+                message: 'Blog added Succesfully.',
+                success: true,
             });
         }
     ).catch((err) => {
-        return res.json(err)
-    })
-    // }
-    // else{
-    //     return res.json({
-    //         message:'invalid AuthorID...'
-    //     })
-    // }
+        return res.json({
+            message: 'Something went wrong. Please contact technical team.',
+            success: false,
+        })
+    });
 }
 
 const UpdateBlog = (req, res) => {
@@ -74,26 +64,38 @@ const UpdateBlog = (req, res) => {
         content: req.body.content
     }
     Blog.findByIdAndUpdate(req.params.id, { $set: updateBlog }, { new: true }, (err, doc) => {
-        console.log(req.params);
+
         if (err) {
-            return res.send(err);
+            return res.send({
+                message: 'Blog updated Succesfully.',
+                success: true,
+            });
         } else {
-            return res.json(doc);
+            return res.json({
+                message: 'Blog updation failed.',
+                success: false,
+            });
         }
     });
 };
 
+const deleteBlog = (req, res) => {
 
-const AllHomedata = async (req, res) => {
+}
+
+
+const AllHomedata = async(req, res) => {
+
     let count = await Blog.countDocuments();
-    let blogsData = await Blog.find().select('title timage content category views shortDescription createdAt updatedAt').lean();
+    let blogsData = await Blog.find()
+        .select('title timage category views shortDescription createdAt updatedAt')
+        .populate({ path: 'author', select: ['name', 'createdAt', 'updatedAt'] }).lean();
 
     if (!blogsData) {
         return res.json({ success: false, message: "Unable to fetch data." });
     }
 
     return res.json({ success: true, data: blogsData, count });
-
 }
 
-module.exports = { getBlogById, allblogs, postBlog, UpdateBlog, AllHomedata };
+module.exports = { getBlogById, allblogs, postBlog, UpdateBlog, AllHomedata, deleteBlog };
