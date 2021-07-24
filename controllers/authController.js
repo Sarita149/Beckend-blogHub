@@ -1,18 +1,19 @@
 const jwt = require('jsonwebtoken');
- 
 
-const jwtAuth = (req,res,next)=>{
+
+const jwtAuth = (req, res, next) => {
     let authToken = req.headers.authorization;
-    console.log("kjsdbf",authToken);
-    jwt.verify(authToken, 'secret',(err,decode)=>{
-        if(decode){
+    // console.log("token :: ",authToken);
+    jwt.verify(authToken, 'secret', (err, decode) => {
+        if (decode) {
             req.decodedToken = decode;
             next();
-        }else {
+        } else {
             return res.json({
-                message : 'Token is invalid or expired!',
-            })
-        }  
+                success: false,
+                message: 'Token is invalid or session expired!',
+            });
+        }
 
     });
     // console.log("jwtAuth : ", req.headers.authorization);

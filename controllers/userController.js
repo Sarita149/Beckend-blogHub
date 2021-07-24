@@ -2,85 +2,84 @@ const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const auth = require('./authController');
+const register = async(req, res) => {
+    console.log("user register :: ", req.body);
 
-const register = (req, res) => {
     let username = req.body.username
     let phone = req.body.phone
-    User.findOne({ $or: [{ email: username }, { phone: phone }]}, (err, user) => {
-        if (err) {
-            res.json(err);
-        } else if (!user) {
-            bcrypt.hash(req.body.password, 10, (err, hashedpass) => {
-                // console.log(hashedpass);
-                if (err) {
-                    res.json({
-                        error: err
-                    })
-                }
-                let user = new User({
-                    name: req.body.name,
-                    email: req.body.email,
-                    phone: req.body.phone,
-                    password: hashedpass
-                })
-                // console.log(user.name);
-                user.save()
-                .then(user => {
-                    res.json({
-                        message: 'User Register Succesfully!',
-                        result: user
-                    })
-                })
-                .catch(err => {
-                    res.json(err)
-                })
+    let existingUser = await User.findOne({ $or: [{ email: username }, { phone: phone }] });
 
+    // if user exist
+    if (existingUser) {
+        return res.json({
+            success: false,
+            message: 'User already exist !',
+        });
+    }
+
+    // if user not exist
+    bcrypt.hash(req.body.password, 10, (err, hashedpass) => {
+
+        let user = new User({
+            name: req.body.name,
+            email: req.body.email,
+            phone: req.body.phone,
+            password: hashedpass
+        })
+
+        // save new user
+        user.save()
+            .then(user => {
+                res.json({
+                    success: true,
+                    message: 'User Register Succesfully!',
+                });
             })
-        } else {
-            res.json({
-                message: "User already exist"
-            });
-        }
-    })
+            .catch(err => {
+                res.json({
+                    success: false,
+                    message: 'Something went wrong. Please contact technical team !',
+                });
+            })
+    });
 }
 
-const login = (req, res) => {
+const login = async(req, res) => {
     let email = req.body.email;
     let password = req.body.password;
-    // let phone = req.body.phone;
-    // console.log(req.body);
-    const user = User.findOne({ email: email }).lean()
-    console.log(user);
-    user.then(
-        (result)=>{
-            console.log(result);
-            const valid = bcrypt.compareSync( password , result.password);
-            delete result.password;
-            delete result.email;
-            console.log("valid  : "+valid);
-            if(valid){
-                const token = jwt.sign(result,'secret',{expiresIn:'1hr'})
-                return res.json({
-                    message:'login Succesfully',
-                    token
-                })
-            }else{
-                return res.json({
-                    message : ' Password not valid'
-                })
-            }
-        }
-    ).catch(
-        (err)=>{
+
+    console.log("login user :: ", email, password);
+
+    const user = await User.findOne({ email: email }).lean();
+
+    if (user) {
+        const valid = bcrypt.compareSync(password, user.password);
+        delete user.password;
+        // delete user.email;
+
+        if (valid) {
+            const token = jwt.sign(user, 'secret', { expiresIn: '1hr' })
             return res.json({
-                message:'user not found',
-                error : err
-            })
+                success: true,
+                message: 'login Succesfull',
+                token
+            });
+        } else {
+            return res.json({
+                success: false,
+                message: ' Password not valid'
+            });
         }
-    )
+    }
+
+
+    return res.json({
+        success: false,
+        message: 'No user found. Please signup !'
+    });
 }
 
 module.exports = {
-    register, login
+    register,
+    login
 }
