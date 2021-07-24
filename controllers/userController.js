@@ -21,7 +21,7 @@ const register = async(req, res) => {
     bcrypt.hash(req.body.password, 10, (err, hashedpass) => {
 
         let user = new User({
-            name: req.body.name,
+            username: req.body.username,
             email: req.body.email,
             phone: req.body.phone,
             password: hashedpass

@@ -5,10 +5,9 @@ const BlogSchema = new mongoose.Schema({
     title: { type: String },
     content: { type: String },
     timage: { type: String },
-    publish: {
-        type: Boolean,
-        default: false
-    },
+    publish: { type: Boolean, default: false },
+    views: { type: Number, default: 0 },
+    shortDescription: { type: String },
     author: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
@@ -19,13 +18,6 @@ const BlogSchema = new mongoose.Schema({
         required: true,
         ref: 'category'
     },
-    views: {
-        type: Number,
-        default: 0
-    },
-    shortDescription: {
-        type: String,
-    }
 
 }, { timestamps: true })
 
