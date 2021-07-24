@@ -9,7 +9,7 @@ const userRoute = require('./routers/useRoute');
 var app = express();
 
 app.use(cors({origin: 'http://localhost:4200'}));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '150mb'}));
 
 // localhost:3000/api/addblog
 app.use('/api',routes);
