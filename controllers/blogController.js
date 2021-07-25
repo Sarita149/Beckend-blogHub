@@ -4,8 +4,15 @@ const category = require('../models/Category');
 
 
 const allblogs = async(req, res) => {
+    let query = {};
+    if (req.search) {
+        query = { title: new RegExp(req.search, 'i') };
+    }
+
     let count = await Blog.countDocuments();
-    let blogsData = await Blog.find()
+    let blogsData = await Blog.find(query).sort({ views: -1, createdAt: -1 })
+        .skip((req.body.pageNo - 1) * req.body.pageSize)
+        .limit(req.body.pageSize)
         .select('title timage category views shortDescription createdAt updatedAt')
         .populate({ path: 'author', select: ['username'] }).lean();
 
@@ -94,8 +101,11 @@ const getBlogById = async(req, res) => {
 
 
 const AllHomedata = async(req, res) => {
+    // console.log(req.body);
     let count = await Blog.countDocuments();
-    let blogsData = await Blog.find()
+    let blogsData = await Blog.find().sort({ views: -1, createdAt: -1 })
+        .skip((req.body.pageNo - 1) * req.body.pageSize)
+        .limit(req.body.pageSize)
         .select('title timage category views shortDescription createdAt updatedAt')
         .populate({ path: 'author', select: ['username'] })
         .populate({ path: 'category', select: ['categoryName'] })
