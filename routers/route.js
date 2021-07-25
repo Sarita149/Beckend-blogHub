@@ -7,13 +7,10 @@ const { getBlogById, allblogs, postBlog, UpdateBlog, AllHomedata } = require('..
 // const UpdateBlog = require('../controllers/updateBlogController');
 // const auth = require('../controllers/authController');
 
-router.post('/addblog', jwtAuth, postBlog);
-router.get("/allblogs", allblogs);
-
 router.get('/allblogs/:id', getBlogById);
+router.post('/addblog', jwtAuth, postBlog);
 router.post('/allblogs/:id', UpdateBlog);
-
-
-router.get("/allHomeData", AllHomedata);
+router.post("/allHomeData", AllHomedata);
+router.post("/allblogs", allblogs);
 
 module.exports = router;
