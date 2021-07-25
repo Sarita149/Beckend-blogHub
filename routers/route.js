@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const jwtAuth = require('../controllers/authController');
 const { getBlogById, allblogs, postBlog, UpdateBlog, AllHomedata } = require('../controllers/blogController');
+const { getCategory, addCategory, getCategoryWithoutImage } = require('../controllers/categoryController');
 
 // const postblog = require('../controllers/postBlogController');
 // const allBlogs = require('../controllers/allBlogsController');
@@ -12,5 +13,11 @@ router.post('/addblog', jwtAuth, postBlog);
 router.post('/allblogs/:id', UpdateBlog);
 router.post("/allHomeData", AllHomedata);
 router.post("/allblogs", allblogs);
+
+// category
+router.get("/category", getCategory);
+router.get("/categoryWithoutImage", getCategoryWithoutImage);
+router.post("/addCategory", addCategory);
+
 
 module.exports = router;
