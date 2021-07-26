@@ -5,16 +5,23 @@ const category = require('../models/Category');
 
 const allblogs = async(req, res) => {
     let query = {};
-    if (req.search) {
-        query = { title: new RegExp(req.search, 'i') };
+    if (req.body.search) {
+        query = { title: new RegExp(req.body.search, 'i') };
     }
 
-    let count = await Blog.countDocuments();
+    if (req.body.category) {
+        // query['$match '] = [{ author: "dave" }];
+        query['category'] = req.body.category;
+    }
+
+    let count = await Blog.countDocuments(query);
     let blogsData = await Blog.find(query).sort({ views: -1, createdAt: -1 })
         .skip((req.body.pageNo - 1) * req.body.pageSize)
         .limit(req.body.pageSize)
         .select('title timage category views shortDescription createdAt updatedAt')
-        .populate({ path: 'author', select: ['username'] }).lean();
+        .populate({ path: 'author', select: ['username'] })
+        .populate({ path: 'category', select: ['categoryName'] })
+        .lean();
 
     if (!blogsData) {
         return res.json({ success: false, message: "Unable to fetch data." });
@@ -24,19 +31,19 @@ const allblogs = async(req, res) => {
 };
 
 const postBlog = async(req, res) => {
-    let cat = await category.findOne({ categoryName: req.body.category }).lean();
+    // let cat = await category.findOne({ categoryName: req.body.category }).lean();
 
-    if (!cat) {
-        let catObj = { categoryName: req.body.category };
-        cat = await new category(catObj).save();
-    }
+    // if (!cat) {
+    //     let catObj = { categoryName: req.body.category };
+    //     cat = await new category(catObj).save();
+    // }
 
     const addBlog = new Blog({
         author: req.decodedToken._id,
         title: req.body.title,
         timage: req.body.timage,
         content: req.body.description,
-        category: cat._id,
+        category: req.body.category,
         views: req.body.views,
         shortDescription: req.body.shortDescription,
         publish: false
